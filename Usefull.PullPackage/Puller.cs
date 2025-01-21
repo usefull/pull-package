@@ -1,0 +1,137 @@
+﻿using NuGet.Commands;
+using NuGet.Protocol.Core.Types;
+using NuGet.Versioning;
+using System;
+using System.IO;
+using System.Linq;
+using System.Runtime.Loader;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+
+namespace Usefull.PullPackage
+{
+    /// <summary>
+    /// The package pulling functionality.
+    /// </summary>
+    public class Puller
+    {
+        private readonly PullerConfig _config;
+
+        /// <summary>
+        /// The constructor.
+        /// </summary>
+        /// <param name="cofig">The puller configuration.</param>
+        private Puller(PullerConfig cofig)
+        {
+            _config = cofig;
+        }
+
+        /// <summary>
+        /// The pulling result summary.
+        /// </summary>
+        /// <remarks>Null until pulled.</remarks>
+        public RestoreSummary RestoreSummary { get; private set; }
+
+        /// <summary>
+        /// The pulled assets description.
+        /// </summary>
+        /// <remarks>Null until pulled.</remarks>
+        public JsonNode Assets { get; private set; }
+
+        /// <summary>
+        /// Creates the package puller on specified configuration.
+        /// </summary>
+        /// <param name="configure">The configuration definition action.</param>
+        /// <returns>The package puller.</returns>
+        public static Puller Build(Action<IPullerConfig> configure)
+        {
+            var config = new PullerConfig();
+
+            configure(config);
+
+            return new Puller(config);
+        }
+
+        /// <summary>
+        /// Performs packages pulling.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous pulling operation.</returns>
+        /// <exception cref="InvalidOperationException">In case when pulling is performed without a directory path set in the configuration.</exception>
+        /// <exception cref="ArgumentException">In case when the directory path does not specify a valid file path or contains invalid characters.</exception>
+        /// <exception cref="DirectoryNotFoundException">In case when the directory path is invalid, such as being on an unmapped drive.</exception>
+        /// <exception cref="IOException">In case of an IO operation failure, for example, there is an open handle on the directory.</exception>
+        /// <exception cref="PathTooLongException">In case of the directory path exceed the system-defined maximum length.</exception>
+        /// <exception cref="SecurityException">In case when the caller does not have code access permission to create the directory.</exception>
+        /// <exception cref="NotSupportedException">In case when the directory path contains a colon character (:) that is not part of a drive label.</exception>
+        /// <exception cref="UnauthorizedAccessException">In case when the directory contains a read-only files.</exception>
+        public async Task PullAsync()
+        {
+            RestoreSummary = null;
+            Assets = null;
+
+            _config.PrepareDirectory();
+            _config.PrepareConfigFile();
+
+            using var cacheContext = new SourceCacheContext() { DirectDownload = true };
+            var restgoreArgs = _config.PrepareRestoreContext(cacheContext);
+            RestoreSummary = (await RestoreRunner.RunAsync(restgoreArgs)).Single();
+
+            if (RestoreSummary == null || !RestoreSummary.Success)
+                return;
+
+            using var stream = File.OpenRead(_config.AssetsFilePath);
+            Assets = JsonNode.Parse(stream);
+        }
+
+        /// <summary>
+        /// Loads all pulled assemblies.
+        /// </summary>
+        /// <returns>A load context.</returns>
+        public AssemblyLoadContext LoadAll()
+        {
+            var assemblies = Assets?["project"]?["frameworks"]?[_config.FrameworkMoniker]?["dependencies"]?.AsObject();
+
+            if (assemblies == null || !assemblies.Any())
+                return null;
+
+            var context = CreateLoadingContext();
+
+            foreach (var assy in assemblies)
+                Load(assy.Key, VersionRange.Parse(assy.Value.ToString()), context);
+
+            return context;
+        }
+
+        /// <summary>
+        /// Loads the specified assembly and all its dependencies.
+        /// </summary>
+        /// <param name="packageName">The package name.</param>
+        /// <param name="versionRange">The package version range.</param>
+        /// <param name="context">The loading context.</param>
+        /// <returns>A load context.</returns>
+        /// <exception cref="ArgumentException">In case of an unacceptable load context.</exception>
+        public AssemblyLoadContext Load(string packageName, VersionRange versionRange = default, AssemblyLoadContext context = null)
+        {
+            context ??= CreateLoadingContext();
+
+            if (context is AssyLoadContext assyLoadContext)
+                assyLoadContext.Load(packageName, versionRange);
+            else
+                throw new ArgumentException(Resources.UnacceptableLoadContext, nameof(context));
+
+            return context;
+        }
+
+        /// <summary>
+        /// Creates the load context.
+        /// </summary>
+        /// <returns>A load context.</returns>
+        private AssemblyLoadContext CreateLoadingContext() => new AssyLoadContext(CreateAssemblyPathResolver());
+
+        /// <summary>
+        /// Creates the assembly path resolver.
+        /// </summary>
+        /// <returns>An assembly path resolver.</returns>
+        private AssemblyPathResolver CreateAssemblyPathResolver() => new(_config, Assets);
+    }
+}
