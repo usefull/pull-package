@@ -4,6 +4,16 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<RootNamespace>Usefull.PullPackage</RootNamespace>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageId>$(AssemblyName)</PackageId>
+		<Title>$(AssemblyName)</Title>
+		<Authors>usefull</Authors>
+		<Company />
+		<Description>.NET library for pulling NuGet packages and loading them dynamically in runtime.</Description>
+		<PackageProjectUrl>https://github.com/usefull/pull-package</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/usefull/pull-package</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>nuget; pull; restore; package; runtime; dynamically; load</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>
