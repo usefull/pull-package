@@ -19,7 +19,6 @@
 	<ItemGroup>
 		<PackageReference Include="NuGet.Commands" />
 		<PackageReference Include="System.Runtime.Loader" />
-		<PackageReference Include="System.Text.Json" />
 	</ItemGroup>
 
 	<ItemGroup>
