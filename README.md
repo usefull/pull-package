@@ -16,7 +16,7 @@ var puller = Puller.Build(config => config
     .Package("System.Text.Json", "9.0.1")   // define packages to pull
     .Package("Humanizer.Core", "2.14.1")
     .Source("local", "E:\\Work\\VisualStudio\\HDS\\.net\\.nuget\\") // define local folder source
-        .WithMapping("Humanizer.Core")                              // define package which wil be pulled from this source
+        .WithMapping("Humanizer.Core")                              // define package which will be pulled from this source
     .Source("nuget.org", "https://api.nuget.org/v3/index.json")     // define nuget.org source
         .WithMapping("*")                                           // all other packages will be pulled from nuget.org
     .Directory("E:\\_TEMP\\")   // set target directory to pull
