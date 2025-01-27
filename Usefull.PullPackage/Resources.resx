@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AmbiguousTypeName" xml:space="preserve">
+    <value>The ambiguous type name was specified therefore more than one type was found.</value>
+  </data>
   <data name="AssemblyNotFoundInAssets" xml:space="preserve">
     <value>The requested assembly "{0}" was not found in the assets.</value>
   </data>
@@ -146,6 +149,9 @@
   </data>
   <data name="SourceUriCantBeEmpty" xml:space="preserve">
     <value>A source URI can not be empty.</value>
+  </data>
+  <data name="TypeNotFound" xml:space="preserve">
+    <value>The type was not found by specified type name.</value>
   </data>
   <data name="UnacceptableLoadContext" xml:space="preserve">
     <value>An explicitly created context is not acceptable. Only a context that is returned by either the LoadAll method or the Load method is allowed.</value>

@@ -61,6 +61,15 @@ namespace Usefull.PullPackage {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на The ambiguous type name was specified therefore more than one type was found..
+        /// </summary>
+        internal static string AmbiguousTypeName {
+            get {
+                return ResourceManager.GetString("AmbiguousTypeName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на The requested assembly &quot;{0}&quot; was not found in the assets..
         /// </summary>
         internal static string AssemblyNotFoundInAssets {
@@ -147,6 +156,15 @@ namespace Usefull.PullPackage {
         internal static string SourceUriCantBeEmpty {
             get {
                 return ResourceManager.GetString("SourceUriCantBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на The type was not found by specified type name..
+        /// </summary>
+        internal static string TypeNotFound {
+            get {
+                return ResourceManager.GetString("TypeNotFound", resourceCulture);
             }
         }
         

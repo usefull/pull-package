@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Scripting;
 using System.Globalization;
 using System.Runtime.Loader;
+using Usefull.PullPackage.Extensions;
 
 namespace Usefull.PullPackage.Sample
 {
@@ -16,6 +17,7 @@ namespace Usefull.PullPackage.Sample
                 .Framework(FrameworkMoniker.net8_0)     // set target framework version
                 .Package("System.Text.Json", "9.0.1")   // define packages to pull
                 .Package("Humanizer.Core", "2.14.1")
+                .Package("Npgsql", "9.0.2")
                 .Source("local", "E:\\Work\\VisualStudio\\HDS\\.net\\.nuget\\") // define local folder source
                     .WithMapping("Humanizer.Core")                              // define package which wil be pulled from this source
                 .Source("nuget.org", "https://api.nuget.org/v3/index.json")     // define nuget.org source
@@ -37,6 +39,27 @@ namespace Usefull.PullPackage.Sample
 
             // Using functionality of pulled assemblies by scripting
             ScriptingUsing(ctx);
+
+            // Using functionality of pulled assemblies by reflection in simplified manner
+            SimplifiedReflectionUsing(ctx);
+        }
+
+        private static void SimplifiedReflectionUsing(AssemblyLoadContext ctx)
+        {
+            Console.WriteLine("Using assemblies by reflection (simplified)");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+            var dataSourceBuilder = ctx.CreateInstance(
+                "Npgsql.NpgsqlDataSourceBuilder",
+                ["Host=194.168.0.126;Port=5432;Username=postgres;Database=calc-ml;Password=TrendML_2024"]);
+
+            var dataSource = dataSourceBuilder.GetType().GetMethod("Build").Invoke(dataSourceBuilder, null);
+            var connection = dataSource.GetType().GetMethod("OpenConnection").Invoke(dataSource, null);
+
+            Console.WriteLine($"PostgreSQL cinnection state: {connection.GetType().GetProperty("State").GetValue(connection)}");
+
+            connection.GetType().GetMethod("Close").Invoke(connection, null);
+            Console.WriteLine($"PostgreSQL cinnection state: {connection.GetType().GetProperty("State").GetValue(connection)}");
         }
 
         private static void ScriptingUsing(AssemblyLoadContext ctx)
@@ -46,7 +69,7 @@ namespace Usefull.PullPackage.Sample
 
             // Define references and imports (usings) for script
             var options = ScriptOptions.Default
-                .AddReferences(ctx.Assemblies)
+                .AddReferences(ctx.GetAssemblies())
                 .AddImports("System", "Humanizer");
 
             // Invoke script and get result
@@ -64,7 +87,8 @@ namespace Usefull.PullPackage.Sample
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
             // Find assembly System.Text.Json.dll in pulled packages
-            var textJsonAssembly = ctx.Assemblies.FirstOrDefault(a => a.FullName?.Contains("Text.Json") ?? false);
+            var textJsonAssembly = ctx.GetAssemblies()
+                .FirstOrDefault(a => a.FullName?.Contains("Text.Json") ?? false);
 
             // Get type System.Text.Json.JsonSerializer
             var jsonSerializerType = textJsonAssembly?.GetType("System.Text.Json.JsonSerializer");
