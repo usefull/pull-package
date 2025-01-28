@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
 using System.Globalization;
 using System.Runtime.Loader;
 using Usefull.PullPackage.Extensions;
@@ -8,7 +7,7 @@ namespace Usefull.PullPackage.Sample
 {
     internal class Program
     {
-        static async Task Main(string[] args)
+        static async Task Main()
         {
             Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-us");
 
@@ -56,10 +55,10 @@ namespace Usefull.PullPackage.Sample
             var dataSource = dataSourceBuilder.GetType().GetMethod("Build").Invoke(dataSourceBuilder, null);
             var connection = dataSource.GetType().GetMethod("OpenConnection").Invoke(dataSource, null);
 
-            Console.WriteLine($"PostgreSQL cinnection state: {connection.GetType().GetProperty("State").GetValue(connection)}");
+            Console.WriteLine($"PostgreSQL connection state: {connection.GetType().GetProperty("State").GetValue(connection)}");
 
             connection.GetType().GetMethod("Close").Invoke(connection, null);
-            Console.WriteLine($"PostgreSQL cinnection state: {connection.GetType().GetProperty("State").GetValue(connection)}");
+            Console.WriteLine($"PostgreSQL connection state: {connection.GetType().GetProperty("State").GetValue(connection)}");
         }
 
         private static void ScriptingUsing(AssemblyLoadContext ctx)
@@ -67,9 +66,8 @@ namespace Usefull.PullPackage.Sample
             Console.WriteLine("Using assemblies by scripting");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-            // Define references and imports (usings) for script
-            var options = ScriptOptions.Default
-                .AddReferences(ctx.GetAssemblies())
+            // Build the script options
+            var options = ctx.BuildScriptOptions()
                 .AddImports("System", "Humanizer");
 
             // Invoke script and get result

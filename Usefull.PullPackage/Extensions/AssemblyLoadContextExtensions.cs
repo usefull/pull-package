@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.Scripting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -27,6 +28,14 @@ namespace Usefull.PullPackage.Extensions
                 return [];
             }
         }
+
+        /// <summary>
+        /// Builds a <see cref="ScriptOptions"/> based on loaded assemblies from <see cref="AssemblyLoadContext"/>.
+        /// </summary>
+        /// <param name="ctx">An <see cref="AssemblyLoadContext"/>.</param>
+        /// <returns>The <see cref="ScriptOptions"/>.</returns>
+        public static ScriptOptions BuildScriptOptions(this AssemblyLoadContext ctx) =>
+            ScriptOptions.Default.AddReferences(ctx.GetAssemblies());
 
         /// <summary>
         /// Searches the type in assemblies which loaded in the <see cref="AssemblyLoadContext"/>.

@@ -14,17 +14,19 @@
 		<RepositoryUrl>https://github.com/usefull/pull-package</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>nuget; pull; restore; package; runtime; dynamically; load</PackageTags>
-		<VersionPrefix>1.1.0</VersionPrefix>
+		<VersionPrefix>1.2.0</VersionPrefix>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" />
 		<PackageReference Include="NuGet.Commands" />
 		<PackageReference Include="System.Runtime.Loader" />
+		<PackageReference Include="System.Text.Json" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\README.md" Pack="true" PackagePath="\"/>
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>

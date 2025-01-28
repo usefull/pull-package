@@ -34,11 +34,9 @@ var ctx = puller.LoadAll();
 Then you can use loaded assemblies functionality by scripting:
 ```cs
 using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
 ...
-// Define references and imports (usings) for script
-var options = ScriptOptions.Default
-    .AddReferences(ctx.GetAssemblies())
+// Build script options and define imports (usings) for script
+var options = ctx.BuildScriptOptions()
     .AddImports("System", "Humanizer");
 
 // Invoke script and get result

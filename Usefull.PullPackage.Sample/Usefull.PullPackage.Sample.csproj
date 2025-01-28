@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" />
   </ItemGroup>
 
   <ItemGroup>
