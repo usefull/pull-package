@@ -1,4 +1,5 @@
 ﻿using System;
+using Usefull.PullPackage.Entities;
 
 namespace Usefull.PullPackage.Extensions
 {

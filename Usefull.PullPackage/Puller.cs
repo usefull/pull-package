@@ -2,11 +2,14 @@
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Loader;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Usefull.PullPackage.Entities;
+using Usefull.PullPackage.Extensions;
 
 namespace Usefull.PullPackage
 {
@@ -39,6 +42,12 @@ namespace Usefull.PullPackage
         public JsonNode Assets { get; private set; }
 
         /// <summary>
+        /// The pulled packages.
+        /// </summary>
+        /// <remarks>Null until pulled.</remarks>
+        public List<PackageInfo> Packages { get; private set; }
+
+        /// <summary>
         /// Creates the package puller on specified configuration.
         /// </summary>
         /// <param name="configure">The configuration definition action.</param>
@@ -68,6 +77,7 @@ namespace Usefull.PullPackage
         {
             RestoreSummary = null;
             Assets = null;
+            Packages = null;
 
             _config.PrepareDirectory();
             _config.PrepareConfigFile();
@@ -81,6 +91,7 @@ namespace Usefull.PullPackage
 
             using var stream = File.OpenRead(_config.AssetsFilePath);
             Assets = JsonNode.Parse(stream);
+            Packages = Assets.ToPackagesInfo(_config.FrameworkMoniker, _config.PackagesDirectory.FullName);
         }
 
         /// <summary>
@@ -89,21 +100,18 @@ namespace Usefull.PullPackage
         /// <returns>A load context.</returns>
         public AssemblyLoadContext LoadAll()
         {
-            var assemblies = Assets?["project"]?["frameworks"]?[_config.FrameworkMoniker]?["dependencies"]?.AsObject();
-
-            if (assemblies == null || !assemblies.Any())
-                return null;
-
             var context = CreateLoadingContext();
 
-            foreach (var assy in assemblies)
-                Load(assy.Key, VersionRange.Parse(assy.Value.ToString()), context);
+            foreach (var assembly in Packages?.SelectMany(p => p.RuntimeAssemblies) ?? [])
+            {
+                context.LoadFromAssemblyPath(assembly.Path);
+            }
 
             return context;
         }
 
         /// <summary>
-        /// Loads the specified assembly and all its dependencies.
+        /// Loads the specified package and all dependencies.
         /// </summary>
         /// <param name="packageName">The package name.</param>
         /// <param name="versionRange">The package version range.</param>
@@ -115,7 +123,13 @@ namespace Usefull.PullPackage
             context ??= CreateLoadingContext();
 
             if (context is AssyLoadContext assyLoadContext)
-                assyLoadContext.Load(packageName, versionRange);
+            {
+                var vr = versionRange ?? VersionRange.All;
+                foreach (var assembly in Packages?.Where(p => p.Name == packageName && vr.Satisfies(p.Version))?.SelectMany(p => p.RuntimeAssemblies) ?? [])
+                {
+                    assyLoadContext.LoadFromAssemblyPath(assembly.Path);
+                }
+            }
             else
                 throw new ArgumentException(Resources.UnacceptableLoadContext, nameof(context));
 
@@ -132,6 +146,6 @@ namespace Usefull.PullPackage
         /// Creates the assembly path resolver.
         /// </summary>
         /// <returns>An assembly path resolver.</returns>
-        private AssemblyPathResolver CreateAssemblyPathResolver() => new(_config, Assets);
+        private AssemblyPathResolver CreateAssemblyPathResolver() => new(Packages);
     }
 }

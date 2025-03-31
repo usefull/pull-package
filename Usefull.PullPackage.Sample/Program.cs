@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
 using System.Globalization;
 using System.Runtime.Loader;
+using Usefull.PullPackage.Entities;
 using Usefull.PullPackage.Extensions;
 
 namespace Usefull.PullPackage.Sample
@@ -50,7 +51,7 @@ namespace Usefull.PullPackage.Sample
 
             var dataSourceBuilder = ctx.CreateInstance(
                 "Npgsql.NpgsqlDataSourceBuilder",
-                ["Host=194.168.0.126;Port=5432;Username=postgres;Database=calc-ml;Password=TrendML_2024"]);
+                ["Host=psqlhost;Port=5432;Username=user;Database=data;Password=pass"]);
 
             var dataSource = dataSourceBuilder.GetType().GetMethod("Build").Invoke(dataSourceBuilder, null);
             var connection = dataSource.GetType().GetMethod("OpenConnection").Invoke(dataSource, null);

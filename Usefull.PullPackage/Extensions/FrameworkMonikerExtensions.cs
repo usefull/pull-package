@@ -1,4 +1,6 @@
-﻿namespace Usefull.PullPackage.Extensions
+﻿using Usefull.PullPackage.Entities;
+
+namespace Usefull.PullPackage.Extensions
 {
     /// <summary>
     /// Extension methods for <see cref="FrameworkMoniker"/> enum.

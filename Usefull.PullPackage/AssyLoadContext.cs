@@ -34,7 +34,6 @@ namespace Usefull.PullPackage
             }
 
             var assembly = LoadFromAssemblyPath(path);
-            assembly.GetTypes(); // initiate loading of assemblies on which the current one depends
             return assembly;
         }
 
@@ -52,7 +51,6 @@ namespace Usefull.PullPackage
                 return null;
 
             var assembly = LoadFromAssemblyPath(path);
-            assembly.GetTypes(); // initiate loading of assemblies on which the current one depends
             return assembly;
         }
     }

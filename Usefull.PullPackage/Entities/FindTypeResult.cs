@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace Usefull.PullPackage
+namespace Usefull.PullPackage.Entities
 {
     /// <summary>
     /// A <see cref="AssemblyLoadContext.FindType"/> method result.

@@ -1,15 +1,14 @@
-﻿using NuGet.Versioning;
-using System;
+﻿using System;
 
-namespace Usefull.PullPackage
+namespace Usefull.PullPackage.Entities
 {
     /// <summary>
     /// An assembly descripting information.
     /// </summary>
-    internal class AssemblyInfo
+    public class AssemblyInfo
     {
         /// <summary>
-        /// The assembly name/
+        /// The assembly name.
         /// </summary>
         public string Name { get; set; }
 
@@ -17,11 +16,6 @@ namespace Usefull.PullPackage
         /// The assembly version.
         /// </summary>
         public Version Version { get; set; }
-
-        /// <summary>
-        /// The assembly version in the NuGet format.
-        /// </summary>
-        public NuGetVersion NuGetVersion { get; set; }
 
         /// <summary>
         /// The path to the assembly file.

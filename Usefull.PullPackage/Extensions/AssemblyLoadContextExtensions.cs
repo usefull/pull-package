@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
+using Usefull.PullPackage.Entities;
 
 namespace Usefull.PullPackage.Extensions
 {
@@ -156,7 +157,7 @@ namespace Usefull.PullPackage.Extensions
             if (found.Count() > 1)
                 throw new AmbiguousMatchException(Resources.AmbiguousTypeName);
             else if (found.Count() == 0)
-                throw new AggregateException(Resources.TypeNotFound, fr.Select(r => r.Error));
+                throw new AggregateException(Resources.TypeNotFound, fr.Where(r => r.Error != null).Select(r => r.Error));
             else
                 return found.First().Type;
         }

@@ -1,4 +1,5 @@
 ﻿using NuGet.Common;
+using Usefull.PullPackage.Entities;
 
 namespace Usefull.PullPackage
 {

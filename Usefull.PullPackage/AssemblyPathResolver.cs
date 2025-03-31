@@ -1,24 +1,20 @@
 ﻿using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json.Nodes;
+using Usefull.PullPackage.Entities;
 
 namespace Usefull.PullPackage
 {
     /// <summary>
     /// The assembly file path resolution functionality.
     /// </summary>
-    /// <param name="config">The puller configuration info.</param>
-    /// <param name="assets">The pulled assets info.</param>
-    /// <exception cref="ArgumentNullException">In case of any constrictor parameter is null.</exception>
-    internal class AssemblyPathResolver(PullerConfig config, JsonNode assets)
+    /// <param name="packages">The pulled packages info.</param>
+    /// <exception cref="ArgumentNullException">In case of a constrictor parameter is null.</exception>
+    internal class AssemblyPathResolver(List<PackageInfo> packages)
     {
-        private readonly PullerConfig _config = config ?? throw new ArgumentNullException(nameof(config));
-        private readonly JsonNode _assets = assets ?? throw new ArgumentNullException(nameof(config), Resources.AssetsNotFound);
-        private List<AssemblyInfo> _assetAssemblies = null;
+        private readonly List<PackageInfo> _packages = packages ?? throw new ArgumentNullException(nameof(packages), Resources.AssetsNotFound);
 
         /// <summary>
         /// Resolves the assembly file path.
@@ -30,9 +26,9 @@ namespace Usefull.PullPackage
             if (assemblyName == null)
                 return null;
 
-            return AssetAssemblies?.Where(a => a.Name.ToLower() == assemblyName.Name?.ToLower() && a.Version >= (assemblyName.Version ?? new Version()))
-                ?.OrderByDescending(a => a.Version)
-                ?.FirstOrDefault()
+            return _packages.SelectMany(p => p.RuntimeAssemblies).Where(a => a.Name.ToLower() == assemblyName.Name?.ToLower())
+                .OrderByDescending(a => a.Version)
+                .FirstOrDefault()
                 ?.Path;
         }
 
@@ -45,41 +41,9 @@ namespace Usefull.PullPackage
         public string Resolve(string assemblyName, VersionRange versionRange)
         {
             var vr = versionRange ?? VersionRange.All;
-            return AssetAssemblies?.FirstOrDefault(a => a.Name == assemblyName && vr.Satisfies(a.NuGetVersion))?.Path;
-        }
-
-        /// <summary>
-        /// The list of assemblies extracted from the pulled assets info or null in case of failure.
-        /// </summary>
-        private List<AssemblyInfo> AssetAssemblies
-        {
-            get
-            {
-                _assetAssemblies ??= _assets["targets"]?[config.FrameworkMoniker]?.AsObject()?.Select(i =>
-                {
-                    try
-                    {
-                        var parts = i.Key.Split('/');
-                        var path = i.Value["runtime"]?.AsObject()?.FirstOrDefault().Key;
-                        var nversion = new NuGetVersion(parts[1]);
-                        var version = new Version(nversion.Major, nversion.Minor, nversion.Revision, nversion.Patch);
-                        var res = new AssemblyInfo
-                        {
-                            Name = parts[0],
-                            Version = version,
-                            NuGetVersion = nversion,
-                            Path = Path.Combine(_config.PackagesDirectory.FullName, i.Key, path).Replace('/', '\\')
-                        };
-                        return res;
-                    }
-                    catch
-                    {
-                        return null;
-                    }
-                }).Where(i => i != null).ToList();
-
-                return _assetAssemblies;
-            }
+            return _packages.SelectMany(p => p.RuntimeAssemblies.Select(i => new { Name = i.Name.ToLower(), p.Version, i.Path }))
+                .FirstOrDefault(i => i.Name == assemblyName.ToLower() && vr.Satisfies(i.Version))
+                ?.Path;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Usefull.PullPackage
+﻿namespace Usefull.PullPackage.Entities
 {
     /// <summary>
     /// Target framework of .NET app or library.

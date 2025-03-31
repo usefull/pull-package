@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
+using Usefull.PullPackage.Entities;
 using Usefull.PullPackage.Extensions;
 
 namespace Usefull.PullPackage
