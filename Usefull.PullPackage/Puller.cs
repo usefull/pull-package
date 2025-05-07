@@ -94,13 +94,26 @@ namespace Usefull.PullPackage
             Packages = Assets.ToPackagesInfo(_config.FrameworkMoniker, _config.PackagesDirectory.FullName);
         }
 
+#if NETSTANDARD
         /// <summary>
         /// Loads all pulled assemblies.
         /// </summary>
         /// <returns>A load context.</returns>
         public AssemblyLoadContext LoadAll()
+#else
+        /// <summary>
+        /// Loads all pulled assemblies.
+        /// </summary>
+        /// <param name="isCollectible">true prescribes the creation of a collectible context that allows unloading.</param>
+        /// <returns>A load context.</returns>
+        public AssemblyLoadContext LoadAll(bool isCollectible = false)
+#endif
         {
+#if NETSTANDARD
             var context = CreateLoadingContext();
+#else
+            var context = CreateLoadingContext(isCollectible);
+#endif
 
             foreach (var assembly in Packages?.SelectMany(p => p.RuntimeAssemblies) ?? [])
             {
@@ -110,6 +123,7 @@ namespace Usefull.PullPackage
             return context;
         }
 
+#if NETSTANDARD
         /// <summary>
         /// Loads the specified package and all dependencies.
         /// </summary>
@@ -119,8 +133,24 @@ namespace Usefull.PullPackage
         /// <returns>A load context.</returns>
         /// <exception cref="ArgumentException">In case of an unacceptable load context.</exception>
         public AssemblyLoadContext Load(string packageName, VersionRange versionRange = default, AssemblyLoadContext context = null)
+#else
+        /// <summary>
+        /// Loads the specified package and all dependencies.
+        /// </summary>
+        /// <param name="packageName">The package name.</param>
+        /// <param name="versionRange">The package version range.</param>
+        /// <param name="context">The loading context.</param>
+        /// <param name="isCollectible">true prescribes the creation of a collectible context that allows unloading.</param>
+        /// <returns>A load context.</returns>
+        /// <exception cref="ArgumentException">In case of an unacceptable load context.</exception>
+        public AssemblyLoadContext Load(string packageName, VersionRange versionRange = default, AssemblyLoadContext context = null, bool isCollectible = false)
+#endif
         {
+#if NETSTANDARD
             context ??= CreateLoadingContext();
+#else
+            context ??= CreateLoadingContext(isCollectible);
+#endif
 
             if (context is AssyLoadContext assyLoadContext)
             {
@@ -136,11 +166,20 @@ namespace Usefull.PullPackage
             return context;
         }
 
+#if NETSTANDARD
         /// <summary>
         /// Creates the load context.
         /// </summary>
         /// <returns>A load context.</returns>
         private AssemblyLoadContext CreateLoadingContext() => new AssyLoadContext(CreateAssemblyPathResolver());
+#else
+        /// <summary>
+        /// Creates the load context.
+        /// </summary>
+        /// <param name="isCollectible">true prescribes the creation of a collectible context that allows unloading.</param>
+        /// <returns>A load context.</returns>
+        private AssemblyLoadContext CreateLoadingContext(bool isCollectible = false) => new AssyLoadContext(CreateAssemblyPathResolver(), isCollectible);
+#endif
 
         /// <summary>
         /// Creates the assembly path resolver.

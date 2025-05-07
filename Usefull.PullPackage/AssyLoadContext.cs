@@ -10,8 +10,13 @@ namespace Usefull.PullPackage
     /// An assemblies loading context.
     /// </summary>
     /// <param name="resolver">The assembly file path resolver.</param>
+    /// <param name="isCollectible">The sign of a collectible context that allows unloading.</param>
     /// <exception cref="ArgumentNullException">In case of <paramref name="resolver"/> is null.</exception>
+#if NETSTANDARD
     internal class AssyLoadContext(AssemblyPathResolver resolver) : AssemblyLoadContext()
+#else
+    internal class AssyLoadContext(AssemblyPathResolver resolver, bool isCollectible = false) : AssemblyLoadContext(isCollectible)
+#endif
     {
         private readonly AssemblyPathResolver _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
 
