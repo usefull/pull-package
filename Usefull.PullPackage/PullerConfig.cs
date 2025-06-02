@@ -192,8 +192,7 @@ namespace Usefull.PullPackage
                 var framework = updated.TargetFrameworks[i];
                 if (string.IsNullOrEmpty(framework.TargetAlias))
                 {
-                    var clone = framework.Clone();
-                    clone.TargetAlias = framework.FrameworkName.GetShortFolderName();
+                    var clone = new TargetFrameworkInformation(framework);
                     updated.TargetFrameworks[i] = clone;
                 }
             }
