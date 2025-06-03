@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace Usefull.PullPackage.Entities
 {
@@ -21,5 +22,10 @@ namespace Usefull.PullPackage.Entities
         /// The path to the assembly file.
         /// </summary>
         public string Path { get; set; }
+
+        /// <summary>
+        /// Loaded assembly.
+        /// </summary>
+        public Assembly Loaded { get; set; }
     }
 }

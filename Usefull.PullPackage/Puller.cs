@@ -117,7 +117,7 @@ namespace Usefull.PullPackage
 
             foreach (var assembly in Packages?.SelectMany(p => p.RuntimeAssemblies) ?? [])
             {
-                context.LoadFromAssemblyPath(assembly.Path);
+                assembly.Loaded = context.LoadFromAssemblyPath(assembly.Path);
             }
 
             return context;
@@ -157,7 +157,7 @@ namespace Usefull.PullPackage
                 var vr = versionRange ?? VersionRange.All;
                 foreach (var assembly in Packages?.Where(p => p.Name == packageName && vr.Satisfies(p.Version))?.SelectMany(p => p.RuntimeAssemblies) ?? [])
                 {
-                    assyLoadContext.LoadFromAssemblyPath(assembly.Path);
+                    assembly.Loaded = assyLoadContext.LoadFromAssemblyPath(assembly.Path);
                 }
             }
             else
