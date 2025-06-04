@@ -75,7 +75,7 @@ var dataSource = dataSourceBuilder.GetType().GetMethod("Build").Invoke(dataSourc
 var connection = dataSource.GetType().GetMethod("OpenConnection").Invoke(dataSource, null);
 ```
 ## Unloading the context after use
-In order to be able to unload after use, it is necessary to load assemblies into a ñollectible context:
+In order to be able to unload after use, it is necessary to load assemblies into a collectible context:
 ```cs
 var ctx = puller.LoadAll(true);
 ```
