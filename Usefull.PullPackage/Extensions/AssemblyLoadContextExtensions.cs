@@ -156,7 +156,7 @@ namespace Usefull.PullPackage.Extensions
             var found = fr.Where(r => r.Type != null);
             if (found.Count() > 1)
                 throw new AmbiguousMatchException(Resources.AmbiguousTypeName);
-            else if (found.Count() == 0)
+            else if (!found.Any())
                 throw new AggregateException(Resources.TypeNotFound, fr.Where(r => r.Error != null).Select(r => r.Error));
             else
                 return found.First().Type;

@@ -1,6 +1,6 @@
 # Usefull.PullPackage
 .NET library for pulling NuGet packages and loading them dynamically in runtime.
-## Usage
+## Basic usage
 Install NuGet package:
 ```
 dotnet add package Usefull.PullPackage
@@ -11,7 +11,7 @@ using Usefull.PullPackage;
 ```
 Configure and build puller object:
 ```cs
-var puller = Puller.Build(config => config
+using var puller = Puller.Build(config => config
     .Framework(FrameworkMoniker.net8_0)     // set target framework version
     .Package("System.Text.Json", "9.0.1")   // define packages to pull
     .Package("Humanizer.Core", "2.14.1")
@@ -74,3 +74,57 @@ var dataSourceBuilder = ctx.CreateInstance(
 var dataSource = dataSourceBuilder.GetType().GetMethod("Build").Invoke(dataSourceBuilder, null);
 var connection = dataSource.GetType().GetMethod("OpenConnection").Invoke(dataSource, null);
 ```
+## Unloading the context after use
+In order to be able to unload after use, it is necessary to load assemblies into a ñollectible context:
+```cs
+var ctx = puller.LoadAll(true);
+```
+When the context is no longer needed initiate unloading by calling:
+```cs
+ctx.Unload();
+```
+However, this does not guarantee immediate release of the memory occupied by the context. To force unloading, use the following technique:
+
+1. First, wrap all context operations, starting with loading, inside a single non-asynchronous method. Mark the method with an attribute *MethodImplAttribute*. This method, in addition to the necessary results, should return a weak reference to the context. For example, like this:
+```cs
+[MethodImpl(MethodImplOptions.NoInlining)]
+private static (List<string>, WeakReference) GetAssembles(Puller puller)
+{
+    // Load all pulled assemblies
+    var ctx = puller.LoadAll(true);
+
+    // Read assemblies location.
+    var result = puller.Packages.SelectMany(a => a.RuntimeAssemblies)
+        .Select(a => a.Path).ToList();
+
+    // Unload context
+    ctx.Unload();           
+
+    // Return result and the context weak redference
+    return (result, new WeakReference(ctx));
+}
+```
+2. After disposing the puller, force an immediately garbage collection and wait for the context finalized:
+```cs
+    using (var puller = Puller.Build( ... ))
+    {
+        await puller.PullAsync();
+    
+        // Do the necessary work with the context
+        (var assys, ctxRef) = GetAssembles(puller);
+
+        foreach(var assy in assys)
+            Console.WriteLine(assy);
+    }
+
+    // Waiting for the context finalized
+    while (ctxRef.IsAlive)
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+    }
+```
+Under certain conditions, the described approach allows for the complete unloading of the context.
+For more details see ["Use collectible AssemblyLoadContext"](https://learn.microsoft.com/en-us/dotnet/standard/assembly/unloadability#use-collectible-assemblyloadcontext).
+
+A full usage examples are available in our [repository](https://github.com/usefull/pull-package/blob/main/Usefull.PullPackage.Sample/Program.cs).

@@ -16,7 +16,7 @@ namespace Usefull.PullPackage
     /// <summary>
     /// The package pulling functionality.
     /// </summary>
-    public class Puller
+    public sealed class Puller : IDisposable
     {
         private readonly PullerConfig _config;
 
@@ -116,9 +116,7 @@ namespace Usefull.PullPackage
 #endif
 
             foreach (var assembly in Packages?.SelectMany(p => p.RuntimeAssemblies) ?? [])
-            {
                 assembly.Loaded = context.LoadFromAssemblyPath(assembly.Path);
-            }
 
             return context;
         }
@@ -156,15 +154,23 @@ namespace Usefull.PullPackage
             {
                 var vr = versionRange ?? VersionRange.All;
                 foreach (var assembly in Packages?.Where(p => p.Name == packageName && vr.Satisfies(p.Version))?.SelectMany(p => p.RuntimeAssemblies) ?? [])
-                {
                     assembly.Loaded = assyLoadContext.LoadFromAssemblyPath(assembly.Path);
-                }
             }
             else
                 throw new ArgumentException(Resources.UnacceptableLoadContext, nameof(context));
 
             return context;
         }
+
+        /// <summary>
+        /// Nullifies all references to loaded assemblies to allow unloading.
+        /// </summary>
+        public void Dispose()
+        {
+            foreach (var a in Packages.SelectMany(p => p.RuntimeAssemblies))
+                a.Loaded = null;
+        }
+
 
 #if NETSTANDARD
         /// <summary>

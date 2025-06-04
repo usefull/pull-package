@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Usefull.PullPackage.Entities;
 using Usefull.PullPackage.Extensions;
@@ -12,8 +13,19 @@ namespace Usefull.PullPackage.Sample
         {
             Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-us");
 
-            // Configure and build puller
-            var puller = Puller.Build(config => config
+            await BasicDemoAsync();
+
+            await UnloadingDemoAsync();
+        }
+
+        static async Task BasicDemoAsync()
+        {
+            Console.WriteLine("************************");
+            Console.WriteLine("*** Basic usage demo ***");
+            Console.WriteLine("************************");
+            Console.WriteLine(string.Empty);
+
+            using var puller = Puller.Build(config => config
                 .Framework(FrameworkMoniker.net8_0)     // set target framework version
                 .Package("System.Text.Json", "9.0.1")   // define packages to pull
                 .Package("Humanizer.Core", "2.14.1")
@@ -24,7 +36,6 @@ namespace Usefull.PullPackage.Sample
                     .WithMapping("*")                                           // all other packages will be pulled from nuget.org
                 .Directory("E:\\_TEMP\\")   // set target directory to pull
             );
-
             // Perform pulling
             Console.Write("Pulling out assemblies...");
             await puller.PullAsync();
@@ -38,16 +49,85 @@ namespace Usefull.PullPackage.Sample
             ReflectionUsing(ctx);
 
             // Using functionality of pulled assemblies by scripting
-            ScriptingUsing(ctx);
+            await ScriptingUsing(ctx);
 
             // Using functionality of pulled assemblies by reflection in simplified manner
             SimplifiedReflectionUsing(ctx);
+
+            Console.WriteLine(string.Empty);
+        }
+
+        static async Task UnloadingDemoAsync()
+        {
+            Console.WriteLine("********************************************************");
+            Console.WriteLine("*** Unloading and deleting pulled packages after use ***");
+            Console.WriteLine("********************************************************");
+            Console.WriteLine(string.Empty);
+
+            var directoryToPull = "E:\\_tmp\\";
+            WeakReference ctxRef;
+
+            using (var puller = Puller.Build(config => config
+                .Framework(FrameworkMoniker.net8_0)     // set target framework version
+                .Package("System.Text.Json", "9.0.1")   // define packages to pull
+                .Package("Humanizer.Core", "2.14.1")
+                .Package("Npgsql", "9.0.2")
+                .Source("local", "E:\\Work\\VisualStudio\\HDS\\.net\\.nuget\\") // define local folder source
+                    .WithMapping("Humanizer.Core")                              // define package which wil be pulled from this source
+                .Source("nuget.org", "https://api.nuget.org/v3/index.json")     // define nuget.org source
+                    .WithMapping("*")                                           // all other packages will be pulled from nuget.org
+                .Directory(directoryToPull)   // set target directory to pull
+            ))
+            {
+                // Perform pulling
+                Console.Write("Pulling out assemblies...");
+                await puller.PullAsync();
+                Console.WriteLine($"\rSuccessfully pulled {puller.RestoreSummary.InstallCount} packages");
+                Console.WriteLine(string.Empty);
+
+                // Reading loaded assemblies list
+                (var assys, ctxRef) = GetAssembles(puller);
+
+                foreach(var assy in assys)
+                    Console.WriteLine(assy);
+            }
+            Console.WriteLine(string.Empty);
+
+            Console.Write("Waiting for context finalized...");
+            while (ctxRef.IsAlive)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+            Console.WriteLine($"\rContext finalized successfully  ");
+
+            // Delete pulled packages files
+            Directory.Delete(directoryToPull, true);
+            Console.WriteLine($"Pulled packages files deleted");
+            Console.WriteLine(string.Empty);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (List<string>, WeakReference) GetAssembles(Puller puller)
+        {
+            // Load all pulled assemblies
+            var ctx = puller.LoadAll(true);
+
+            // Read assemblies location.
+            var result = puller.Packages.SelectMany(a => a.RuntimeAssemblies)
+                .Select(a => a.Path).ToList();
+
+            // Unload context
+            ctx.Unload();           
+
+            // Return result and the context weak redference
+            return (result, new WeakReference(ctx));
         }
 
         private static void SimplifiedReflectionUsing(AssemblyLoadContext ctx)
         {
             Console.WriteLine("Using assemblies by reflection (simplified)");
-            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
             var dataSourceBuilder = ctx.CreateInstance(
                 "Npgsql.NpgsqlDataSourceBuilder",
@@ -62,7 +142,7 @@ namespace Usefull.PullPackage.Sample
             Console.WriteLine($"PostgreSQL connection state: {connection.GetType().GetProperty("State").GetValue(connection)}");
         }
 
-        private static void ScriptingUsing(AssemblyLoadContext ctx)
+        private static async Task ScriptingUsing(AssemblyLoadContext ctx)
         {
             Console.WriteLine("Using assemblies by scripting");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -72,9 +152,7 @@ namespace Usefull.PullPackage.Sample
                 .AddImports("System", "Humanizer");
 
             // Invoke script and get result
-            var result = CSharpScript.RunAsync("DateTime.UtcNow.AddHours(-2).Humanize()", options)
-                .GetAwaiter()
-                .GetResult();
+            var result = await CSharpScript.RunAsync("DateTime.UtcNow.AddHours(-2).Humanize()", options);
 
             Console.WriteLine(result.ReturnValue);
             Console.WriteLine(string.Empty);
