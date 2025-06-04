@@ -26,7 +26,7 @@ namespace Usefull.PullPackage.Sample
             Console.WriteLine(string.Empty);
 
             using var puller = Puller.Build(config => config
-                .Framework(FrameworkMoniker.net8_0)     // set target framework version
+                .Framework(FrameworkMoniker.net9_0)     // set target framework version
                 .Package("System.Text.Json", "9.0.1")   // define packages to pull
                 .Package("Humanizer.Core", "2.14.1")
                 .Package("Npgsql", "9.0.2")
