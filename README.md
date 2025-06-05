@@ -31,6 +31,8 @@ Load all pulled assemblies:
 ```cs
 var ctx = puller.LoadAll();
 ```
+After that you can check out the pulling result in property *puller.RestoreSummary.Success* and the list of errors in property *puller.RestoreSummary.Errors*.
+
 Then you can use loaded assemblies functionality by scripting:
 ```cs
 using Microsoft.CodeAnalysis.CSharp.Scripting;

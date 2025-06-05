@@ -86,9 +86,6 @@ namespace Usefull.PullPackage
             var restgoreArgs = _config.PrepareRestoreContext(cacheContext);
             RestoreSummary = (await RestoreRunner.RunAsync(restgoreArgs)).Single();
 
-            if (RestoreSummary == null || !RestoreSummary.Success)
-                return;
-
             using var stream = File.OpenRead(_config.AssetsFilePath);
             Assets = JsonNode.Parse(stream);
             Packages = Assets.ToPackagesInfo(_config.FrameworkMoniker, _config.PackagesDirectory.FullName);
