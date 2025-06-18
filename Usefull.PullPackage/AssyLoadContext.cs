@@ -34,8 +34,16 @@ namespace Usefull.PullPackage
             var path = _resolver.Resolve(assemblyName, versionRange);
             if (string.IsNullOrWhiteSpace(path))
             {
-                var assyName = $"{assemblyName} {versionRange}";
-                throw new FileNotFoundException(string.Format(Resources.AssemblyNotFoundInAssets, assyName));
+                // Attempt to find an assembly in the default load context.
+                try
+                {
+                    path = Default.LoadFromAssemblyName(new AssemblyName(assemblyName)).Location;
+                }
+                catch
+                {
+                    var assyName = $"{assemblyName} {versionRange}";
+                    throw new FileNotFoundException(string.Format(Resources.AssemblyNotFoundInAssets, assyName));
+                }
             }
 
             var assembly = LoadFromAssemblyPath(path);
@@ -53,7 +61,17 @@ namespace Usefull.PullPackage
         {
             var path = _resolver.Resolve(assemblyName);
             if (string.IsNullOrWhiteSpace(path))
-                return null;
+            {
+                // Attempt to find an assembly in the default load context.
+                try
+                {
+                    path = Default.LoadFromAssemblyName(assemblyName).Location;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
 
             var assembly = LoadFromAssemblyPath(path);
             return assembly;
