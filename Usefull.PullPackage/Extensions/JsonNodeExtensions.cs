@@ -39,20 +39,20 @@ namespace Usefull.PullPackage.Extensions
                             return null;
 
                         return new PackageReference { PackageName = d.Key, VersionRange = versionRange };
-                    })?.Where(d => d != null) ?? []).ToList(),
+                    })?.Where(d => d != null) ?? Enumerable.Empty<PackageReference>()).ToList(),
                     RuntimeAssemblies = (n.Value["runtime"]?.AsObject()?.Select(r =>
                     {
                         var i = r.Key.LastIndexOf('/');
-                        var n = i >= 0 ? r.Key.Substring(i + 1) : r.Key;
-                        i = n.LastIndexOf('.');
+                        var nm = i >= 0 ? r.Key.Substring(i + 1) : r.Key;
+                        i = nm.LastIndexOf('.');
                         return new AssemblyInfo
                         {
-                            Name = i >= 0 ? n.Substring(0, i) : n,
+                            Name = i >= 0 ? nm.Substring(0, i) : nm,
                             Version = new System.Version(version.ToFullString()),
                             Path = Path.Combine(packagesPath, parts[0], version.ToString(), r.Key).Replace('/', '\\')
                         };
-                    }) ?? []).ToList()
+                    }) ?? Enumerable.Empty<AssemblyInfo>()).ToList()
                 };
-            }).Where(d => d != null) ?? []).ToList();
+            }).Where(d => d != null) ?? Enumerable.Empty<PackageInfo>()).ToList();
     }
 }

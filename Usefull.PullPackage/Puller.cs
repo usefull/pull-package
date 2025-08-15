@@ -82,13 +82,17 @@ namespace Usefull.PullPackage
             _config.PrepareDirectory();
             _config.PrepareConfigFile();
 
-            using var cacheContext = new SourceCacheContext() { DirectDownload = true };
-            var restgoreArgs = _config.PrepareRestoreContext(cacheContext);
-            RestoreSummary = (await RestoreRunner.RunAsync(restgoreArgs)).Single();
+            using (var cacheContext = new SourceCacheContext() { DirectDownload = true })
+            {
+                var restgoreArgs = _config.PrepareRestoreContext(cacheContext);
+                RestoreSummary = (await RestoreRunner.RunAsync(restgoreArgs)).Single();
 
-            using var stream = File.OpenRead(_config.AssetsFilePath);
-            Assets = JsonNode.Parse(stream);
-            Packages = Assets.ToPackagesInfo(_config.FrameworkMoniker, _config.PackagesDirectory.FullName);
+                using (var stream = File.OpenRead(_config.AssetsFilePath))
+                {
+                    Assets = JsonNode.Parse(stream);
+                    Packages = Assets.ToPackagesInfo(_config.FrameworkMoniker, _config.PackagesDirectory.FullName);
+                }
+            }
         }
 
 #if NETSTANDARD
@@ -112,7 +116,7 @@ namespace Usefull.PullPackage
             var context = CreateLoadingContext(isCollectible);
 #endif
 
-            foreach (var assembly in Packages?.SelectMany(p => p.RuntimeAssemblies) ?? [])
+            foreach (var assembly in Packages?.SelectMany(p => p.RuntimeAssemblies) ?? Enumerable.Empty<AssemblyInfo>())
                 assembly.Loaded = context.LoadFromAssemblyPath(assembly.Path);
 
             return context;
@@ -141,16 +145,17 @@ namespace Usefull.PullPackage
         public AssemblyLoadContext Load(string packageName, VersionRange versionRange = default, AssemblyLoadContext context = null, bool isCollectible = false)
 #endif
         {
+            if (context == null)
 #if NETSTANDARD
-            context ??= CreateLoadingContext();
+                context = CreateLoadingContext();
 #else
-            context ??= CreateLoadingContext(isCollectible);
+                context = CreateLoadingContext(isCollectible);
 #endif
 
             if (context is AssyLoadContext assyLoadContext)
             {
                 var vr = versionRange ?? VersionRange.All;
-                foreach (var assembly in Packages?.Where(p => p.Name == packageName && vr.Satisfies(p.Version))?.SelectMany(p => p.RuntimeAssemblies) ?? [])
+                foreach (var assembly in Packages?.Where(p => p.Name == packageName && vr.Satisfies(p.Version))?.SelectMany(p => p.RuntimeAssemblies) ?? Enumerable.Empty<AssemblyInfo>())
                     assembly.Loaded = assyLoadContext.LoadFromAssemblyPath(assembly.Path);
             }
             else
@@ -188,6 +193,6 @@ namespace Usefull.PullPackage
         /// Creates the assembly path resolver.
         /// </summary>
         /// <returns>An assembly path resolver.</returns>
-        private AssemblyPathResolver CreateAssemblyPathResolver() => new(Packages);
+        private AssemblyPathResolver CreateAssemblyPathResolver() => new AssemblyPathResolver(Packages);
     }
 }

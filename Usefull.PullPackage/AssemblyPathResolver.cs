@@ -10,11 +10,19 @@ namespace Usefull.PullPackage
     /// <summary>
     /// The assembly file path resolution functionality.
     /// </summary>
-    /// <param name="packages">The pulled packages info.</param>
-    /// <exception cref="ArgumentNullException">In case of a constrictor parameter is null.</exception>
-    internal class AssemblyPathResolver(List<PackageInfo> packages)
+    internal class AssemblyPathResolver
     {
-        private readonly List<PackageInfo> _packages = packages ?? throw new ArgumentNullException(nameof(packages), Resources.AssetsNotFound);
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="packages">The pulled packages info.</param>
+        /// <exception cref="ArgumentNullException">In case of a constrictor parameter is null.</exception>
+        public AssemblyPathResolver(List<PackageInfo> packages)
+        {
+            _packages = packages ?? throw new ArgumentNullException(nameof(packages), Resources.AssetsNotFound);
+        }
+
+        private readonly List<PackageInfo> _packages;
 
         /// <summary>
         /// Resolves the assembly file path.

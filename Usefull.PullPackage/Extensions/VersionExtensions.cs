@@ -13,18 +13,31 @@ namespace Usefull.PullPackage.Extensions
         /// </summary>
         /// <param name="version">The environment version.</param>
         /// <returns>The framework version that matches the environment version.</returns>
-        public static FrameworkMoniker ToFrameworkMoniker(this Version version) => version.Major switch
+        public static FrameworkMoniker ToFrameworkMoniker(this Version version)
         {
-            9 => FrameworkMoniker.net9_0,
-            8 => FrameworkMoniker.net8_0,
-            7 => FrameworkMoniker.net7_0,
-            6 => FrameworkMoniker.net6_0,
-            5 => FrameworkMoniker.net5_0,
-            4 => FrameworkMoniker.net481,
-            3 => FrameworkMoniker.netcoreapp3_1,
-            2 => FrameworkMoniker.net35,
-            1 => FrameworkMoniker.netcoreapp1_1,
-            _ => FrameworkMoniker.Unknown
-        };
+            switch (version.Major)
+            {
+                case 9:
+                    return FrameworkMoniker.net9_0;
+                case 8:
+                    return FrameworkMoniker.net8_0;
+                case 7:
+                    return FrameworkMoniker.net7_0;
+                case 6:
+                    return FrameworkMoniker.net6_0;
+                case 5:
+                    return FrameworkMoniker.net5_0;
+                case 4:
+                    return FrameworkMoniker.net481;
+                case 3:
+                    return FrameworkMoniker.netcoreapp3_1;
+                case 2:
+                    return FrameworkMoniker.net35;
+                case 1:
+                    return FrameworkMoniker.netcoreapp1_1;
+                default:
+                    return FrameworkMoniker.Unknown;
+            };
+        }
     }
 }

@@ -26,7 +26,7 @@ namespace Usefull.PullPackage.Extensions
             }
             catch
             {
-                return [];
+                return Enumerable.Empty<Assembly>();
             }
         }
 

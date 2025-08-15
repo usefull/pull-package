@@ -9,12 +9,25 @@ namespace Usefull.PullPackage
     /// <summary>
     /// A packages source configuration.
     /// </summary>
-    /// <param name="name">The source name.</param>
-    /// <param name="source">The source URI.</param>
-    /// <param name="pullerConfig">The puller configuration in which this source configuration defined.</param>
-    internal class SourceConfig(string name, string source, IPullerConfig pullerConfig) : ISourceConfig
+    internal class SourceConfig : ISourceConfig
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="name">The source name.</param>
+        /// <param name="source">The source URI.</param>
+        /// <param name="pullerConfig">The puller configuration in which this source configuration defined.</param>
+        public SourceConfig(string name, string source, IPullerConfig pullerConfig)
+        {
+            _name = name;
+            _source = source;
+            _pullerConfig = pullerConfig;
+        }
+
         private List<string> _matchingPatterns;
+        private readonly string _name;
+        private readonly string _source;
+        private readonly IPullerConfig _pullerConfig;
 
         /// <summary>
         /// Sets the framework version.
@@ -22,7 +35,7 @@ namespace Usefull.PullPackage
         /// <param name="framework">The framework version.</param>
         /// <returns>The current puller configuration.</returns>
         public IPullerConfig Framework(FrameworkMoniker framework) =>
-            pullerConfig.Framework(framework);
+            _pullerConfig.Framework(framework);
 
         /// <summary>
         /// Appends the package to pull.
@@ -31,7 +44,7 @@ namespace Usefull.PullPackage
         /// <param name="version">The package version.</param>
         /// <returns>The current puller configuration.</returns>
         public IPullerConfig Package(string id, string version) =>
-            pullerConfig.Package(id, version);
+            _pullerConfig.Package(id, version);
 
         /// <summary>
         /// Appends the packages source.
@@ -40,7 +53,7 @@ namespace Usefull.PullPackage
         /// <param name="source">The source URI.</param>
         /// <returns>The current added source configuration.</returns>
         public ISourceConfig Source(string name, string source) =>
-            pullerConfig.Source(name, source);
+            _pullerConfig.Source(name, source);
 
         /// <summary>
         /// Sets the directory path where the pulling will be performed.
@@ -48,7 +61,7 @@ namespace Usefull.PullPackage
         /// <param name="directoryPath">The directory path.</param>
         /// <returns>The current puller configuration.</returns>
         public IPullerConfig Directory(string directoryPath) =>
-            pullerConfig.Directory(directoryPath);
+            _pullerConfig.Directory(directoryPath);
 
         /// <summary>
         /// Sets the puller logger.
@@ -56,7 +69,7 @@ namespace Usefull.PullPackage
         /// <param name="logger">The puller logger.</param>
         /// <returns>The current puller configuration.</returns>
         public IPullerConfig Logger(ILogger logger) =>
-            pullerConfig.Logger(logger);
+            _pullerConfig.Logger(logger);
 
         /// <summary>
         /// Appends the package mapping.
@@ -70,7 +83,8 @@ namespace Usefull.PullPackage
                 var p = pattern.Trim();
                 if (p.Any())
                 {
-                    _matchingPatterns ??= [];
+                    if (_matchingPatterns == null)
+                        _matchingPatterns = new List<string>();
 
                     if (!_matchingPatterns.Any(mp => mp == p))
                         _matchingPatterns.Add(p);
@@ -89,7 +103,7 @@ namespace Usefull.PullPackage
                 return string.Empty;
 
             return _matchingPatterns.Aggregate(
-                new StringBuilder($"\t\t<packageSource key=\"{name}\">"),
+                new StringBuilder($"\t\t<packageSource key=\"{_name}\">"),
                 (sb, p) =>
                 {
                     sb.AppendLine($"\t\t\t<package pattern=\"{p}\" />");
@@ -102,11 +116,11 @@ namespace Usefull.PullPackage
         /// <summary>
         /// The source URI.
         /// </summary>
-        public string SourceUri => source;
+        public string SourceUri => _source;
 
         /// <summary>
         /// The source name.
         /// </summary>
-        public string Name => name;
+        public string Name => _name;
     }
 }

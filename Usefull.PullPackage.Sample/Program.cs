@@ -1,7 +1,13 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using System.Threading;
+using System.Threading.Tasks;
 using Usefull.PullPackage.Entities;
 using Usefull.PullPackage.Extensions;
 
@@ -15,17 +21,19 @@ namespace Usefull.PullPackage.Sample
 
             await BasicDemoAsync();
 
+#if !NETSTANDARD
             await UnloadingDemoAsync();
+#endif
         }
 
-        static async Task BasicDemoAsync()
+        public static async Task BasicDemoAsync()
         {
             Console.WriteLine("************************");
             Console.WriteLine("*** Basic usage demo ***");
             Console.WriteLine("************************");
             Console.WriteLine(string.Empty);
 
-            using var puller = Puller.Build(config => config
+            using (var puller = Puller.Build(config => config
                 .Framework(FrameworkMoniker.net9_0)     // set target framework version
                 .Package("System.Text.Json", "9.0.1")   // define packages to pull
                 .Package("Humanizer.Core", "2.14.1")
@@ -35,29 +43,31 @@ namespace Usefull.PullPackage.Sample
                 .Source("nuget.org", "https://api.nuget.org/v3/index.json")     // define nuget.org source
                     .WithMapping("*")                                           // all other packages will be pulled from nuget.org
                 .Directory("E:\\_TEMP\\")   // set target directory to pull
-            );
-            // Perform pulling
-            Console.Write("Pulling out assemblies...");
-            await puller.PullAsync();
-            Console.WriteLine($"\rSuccessfully pulled {puller.RestoreSummary.InstallCount} packages");
-            Console.WriteLine(string.Empty);
+            ))
+            {
+                // Perform pulling
+                Console.Write("Pulling out assemblies...");
+                await puller.PullAsync();
+                Console.WriteLine($"\rSuccessfully pulled {puller.RestoreSummary.InstallCount} packages");
+                Console.WriteLine(string.Empty);
 
-            // Load all pulled assemblies
-            var ctx = puller.LoadAll();
+                // Load all pulled assemblies
+                var ctx = puller.LoadAll();
 
-            // Using functionality of pulled assemblies by reflection
-            ReflectionUsing(ctx);
+                // Using functionality of pulled assemblies by reflection
+                ReflectionUsing(ctx);
 
-            // Using functionality of pulled assemblies by scripting
-            await ScriptingUsing(ctx);
+                // Using functionality of pulled assemblies by scripting
+                await ScriptingUsing(ctx);
 
-            // Using functionality of pulled assemblies by reflection in simplified manner
-            SimplifiedReflectionUsing(ctx);
+                // Using functionality of pulled assemblies by reflection in simplified manner
+                SimplifiedReflectionUsing(ctx);
 
-            Console.WriteLine(string.Empty);
+                Console.WriteLine(string.Empty);
+            }
         }
 
-        static async Task UnloadingDemoAsync()
+        public static async Task UnloadingDemoAsync()
         {
             Console.WriteLine("********************************************************");
             Console.WriteLine("*** Unloading and deleting pulled packages after use ***");
@@ -86,9 +96,11 @@ namespace Usefull.PullPackage.Sample
                 Console.WriteLine(string.Empty);
 
                 // Reading loaded assemblies list
-                (var assys, ctxRef) = GetAssembles(puller);
+                var temp = GetAssembles(puller);
+                var assys = temp.Item1;
+                ctxRef = temp.Item2;
 
-                foreach(var assy in assys)
+                foreach (var assy in assys)
                     Console.WriteLine(assy);
             }
             Console.WriteLine(string.Empty);
@@ -111,14 +123,20 @@ namespace Usefull.PullPackage.Sample
         private static (List<string>, WeakReference) GetAssembles(Puller puller)
         {
             // Load all pulled assemblies
+#if NETSTANDARD
+            var ctx = puller.LoadAll();
+#else
             var ctx = puller.LoadAll(true);
+#endif
 
             // Read assemblies location.
             var result = puller.Packages.SelectMany(a => a.RuntimeAssemblies)
                 .Select(a => a.Path).ToList();
 
+#if !NETSTANDARD
             // Unload context
-            ctx.Unload();           
+            ctx.Unload();
+#endif       
 
             // Return result and the context weak redference
             return (result, new WeakReference(ctx));
@@ -131,7 +149,7 @@ namespace Usefull.PullPackage.Sample
 
             var dataSourceBuilder = ctx.CreateInstance(
                 "Npgsql.NpgsqlDataSourceBuilder",
-                ["Host=psqlhost;Port=5432;Username=user;Database=data;Password=pass"]);
+                new[] { "Host=psqlhost;Port=5432;Username=user;Database=data;Password=pass" });
 
             var dataSource = dataSourceBuilder.GetType().GetMethod("Build").Invoke(dataSourceBuilder, null);
             var connection = dataSource.GetType().GetMethod("OpenConnection").Invoke(dataSource, null);
@@ -177,10 +195,10 @@ namespace Usefull.PullPackage.Sample
             var jsonSerializerOptions = Activator.CreateInstance(jsonSerializerOptionsType);
 
             // Find method System.Text.Json.JsonSerializer.Serialize(object, Type, JsonSerializerOptions)
-            var serializeMethod = jsonSerializerType.GetMethod("Serialize", [typeof(object), typeof(Type), jsonSerializerOptionsType]);
+            var serializeMethod = jsonSerializerType.GetMethod("Serialize", new[] { typeof(object), typeof(Type), jsonSerializerOptionsType });
 
             // Invoke method
-            var result = serializeMethod.Invoke(null, [new Entity { Name = "ewrerer", Value = 12 }, typeof(Entity), jsonSerializerOptions]);
+            var result = serializeMethod.Invoke(null, new[] { new Entity { Name = "ewrerer", Value = 12 }, typeof(Entity), jsonSerializerOptions });
 
             Console.WriteLine(result);
             Console.WriteLine(string.Empty);

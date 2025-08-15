@@ -122,7 +122,7 @@ namespace Usefull.PullPackage
             var spec = PreparePackageSpec();
 
             spec.RestoreMetadata.Sources = _sources.Select(s => new PackageSource(s.SourceUri, s.Name)).ToList();
-            spec.RestoreMetadata.ConfigFilePaths = [Path.Combine(_directory.FullName, _configFileName)];
+            spec.RestoreMetadata.ConfigFilePaths = new List<string> { Path.Combine(_directory.FullName, _configFileName) };
             spec.RestoreMetadata.PackagesPath = _packagesDirectory.FullName;
 
             var dgSpec = new DependencyGraphSpec();
@@ -138,10 +138,10 @@ namespace Usefull.PullPackage
                 GlobalPackagesFolder = _packagesDirectory.FullName,
                 ConfigFile = Path.Combine(_directory.FullName, _configFileName),
                 Log = _logger,
-                PreLoadedRequestProviders =
-                [
+                PreLoadedRequestProviders = new List<IPreLoadedRestoreRequestProvider>
+                {
                     new DependencyGraphSpecRequestProvider(providerCache, dgSpec)
-                ]
+                }
             };
 
             return restoreContext;
@@ -234,7 +234,8 @@ namespace Usefull.PullPackage
             if (i.Length == 0) throw new ArgumentException(Resources.PackageIdentifierCantBeEmpty, nameof(id));
             if (v.Length == 0) throw new ArgumentException(Resources.PackageVersionCantBeEmpty, nameof(version));
 
-            _packages ??= [];
+            if (_packages == null)
+                _packages = new List<(string, string)>();
 
             if (_packages.Any(p => p.Id == i))
                 throw new InvalidOperationException(Resources.PackageAlreadyRegistered);
@@ -261,7 +262,8 @@ namespace Usefull.PullPackage
             if (n.Length == 0) throw new ArgumentException(Resources.SourceNameCantBeEmpty, nameof(name));
             if (uri.Length == 0) throw new ArgumentException(Resources.SourceUriCantBeEmpty, nameof(sourceUri));
 
-            _sources ??= [];
+            if (_sources == null)
+                _sources = new List<SourceConfig>();
 
             if (_sources.Any(s => s.Name == n))
                 throw new InvalidOperationException(Resources.SourceAlreadyRegistered);

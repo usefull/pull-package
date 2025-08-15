@@ -9,16 +9,29 @@ namespace Usefull.PullPackage
     /// <summary>
     /// An assemblies loading context.
     /// </summary>
-    /// <param name="resolver">The assembly file path resolver.</param>
-    /// <param name="isCollectible">The sign of a collectible context that allows unloading.</param>
-    /// <exception cref="ArgumentNullException">In case of <paramref name="resolver"/> is null.</exception>
-#if NETSTANDARD
-    internal class AssyLoadContext(AssemblyPathResolver resolver) : AssemblyLoadContext()
-#else
-    internal class AssyLoadContext(AssemblyPathResolver resolver, bool isCollectible = false) : AssemblyLoadContext(isCollectible)
-#endif
+    internal class AssyLoadContext : AssemblyLoadContext
     {
-        private readonly AssemblyPathResolver _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+#if NETSTANDARD
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="resolver">The assembly file path resolver.</param>
+        /// <exception cref="ArgumentNullException">In case of <paramref name="resolver"/> is null.</exception>
+        public AssyLoadContext(AssemblyPathResolver resolver) : base()
+#else
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="resolver">The assembly file path resolver.</param>
+        /// <param name="isCollectible">true to enable Unload(); otherwise, false. The default value is false because there is a performance cost associated with enabling unloading.</param>
+        /// <exception cref="ArgumentNullException">In case of <paramref name="resolver"/> is null.</exception>
+        public AssyLoadContext(AssemblyPathResolver resolver, bool isCollectible = false) : base(isCollectible)
+#endif
+        {
+            _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+        }
+
+        private readonly AssemblyPathResolver _resolver;
 
         /// <summary>
         /// Loads the assembly using the given resolver.
