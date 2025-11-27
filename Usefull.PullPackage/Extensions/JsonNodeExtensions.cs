@@ -48,7 +48,7 @@ namespace Usefull.PullPackage.Extensions
                         return new AssemblyInfo
                         {
                             Name = i >= 0 ? nm.Substring(0, i) : nm,
-                            Version = new System.Version(version.ToFullString()),
+                            Version = new System.Version(version.Major, version.Minor, version.Patch),
                             Path = Path.Combine(packagesPath, parts[0], version.ToString(), r.Key).Replace('/', '\\')
                         };
                     }) ?? Enumerable.Empty<AssemblyInfo>()).ToList()
