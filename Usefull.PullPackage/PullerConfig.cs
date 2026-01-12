@@ -174,7 +174,7 @@ namespace Usefull.PullPackage
                 CrossTargeting = updated.TargetFrameworks.Count > 1,
                 OriginalTargetFrameworks = updated.TargetFrameworks.Select(e => e.FrameworkName.GetShortFolderName()).ToList(),
                 OutputPath = projectDir,
-                ProjectStyle = ProjectStyle.DotnetToolReference,
+                ProjectStyle = ProjectStyle.PackageReference,
                 ProjectName = spec.Name,
                 ProjectUniqueName = projectPath,
                 ProjectPath = projectPath

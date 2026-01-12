@@ -129,6 +129,4 @@ private static (List<string>, WeakReference) GetAssembles(Puller puller)
 Under certain conditions, the described approach allows for the complete unloading of the context.
 For more details see ["Use collectible AssemblyLoadContext"](https://learn.microsoft.com/en-us/dotnet/standard/assembly/unloadability#use-collectible-assemblyloadcontext).
 
-Note that forced context unloading is not available on the .NET Standard platform, since the *AssemblyLoadContex* class in .NET Standard does not have an *Unload* method.
-
 A full usage examples are available in our [repository](https://github.com/usefull/pull-package/blob/main/Usefull.PullPackage.Sample/Program.cs).
