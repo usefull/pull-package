@@ -6,8 +6,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Scripting.Common" Version="5.0.0" />
     <PackageVersion Include="NuGet.Commands" Version="7.0.1" />
-    <PackageVersion Include="System.Formats.Asn1" Version="10.0.1" />
-    <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageVersion Include="System.Text.Json" Version="10.0.1" />
   </ItemGroup>
 </Project>

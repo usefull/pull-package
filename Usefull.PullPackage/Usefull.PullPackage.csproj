@@ -15,14 +15,13 @@
 		<RepositoryCommit>de6c08248657092dcfbbd83f86aeada59b1bc80a</RepositoryCommit>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>nuget; pull; restore; package; runtime; dynamically; load</PackageTags>
-		<VersionPrefix>1.4.1</VersionPrefix>
+		<VersionPrefix>1.4.2</VersionPrefix>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" />
 		<PackageReference Include="NuGet.Commands" />
-		<PackageReference Include="System.Runtime.Loader" />
 		<PackageReference Include="System.Text.Json" />
 	</ItemGroup>
 
