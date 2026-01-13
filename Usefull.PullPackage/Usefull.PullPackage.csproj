@@ -12,7 +12,7 @@
 		<Description>.NET library for pulling NuGet packages and loading them dynamically in runtime.</Description>
 		<PackageProjectUrl>https://github.com/usefull/pull-package</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/usefull/pull-package</RepositoryUrl>
-		<RepositoryCommit>de6c08248657092dcfbbd83f86aeada59b1bc80a</RepositoryCommit>
+		<RepositoryCommit>9747597a4f49b84c2ba5d6ed62e8dc7c1cdc2806</RepositoryCommit>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>nuget; pull; restore; package; runtime; dynamically; load</PackageTags>
 		<VersionPrefix>1.4.2</VersionPrefix>
