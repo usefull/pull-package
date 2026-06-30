@@ -15,7 +15,7 @@
 		<RepositoryCommit>9747597a4f49b84c2ba5d6ed62e8dc7c1cdc2806</RepositoryCommit>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>nuget; pull; restore; package; runtime; dynamically; load</PackageTags>
-		<VersionPrefix>1.4.2</VersionPrefix>
+		<VersionPrefix>1.4.3</VersionPrefix>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
